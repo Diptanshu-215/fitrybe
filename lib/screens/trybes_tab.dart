@@ -10,7 +10,7 @@ class TrybesTab extends StatefulWidget {
   State<TrybesTab> createState() => _TrybesTabState();
 }
 
-class _TrybesTabState extends State<TrybesTab> {
+class _TrybesTabState extends State<TrybesTab> with TickerProviderStateMixin {
   final Color _accent = const Color(0xFFFF5722);
   final Color _cardBg = const Color(0xFF1F1F22);
 
@@ -23,8 +23,12 @@ class _TrybesTabState extends State<TrybesTab> {
   String _friendSearchQuery = '';
   final TextEditingController _friendSearchController = TextEditingController();
 
-  // Friend Request state
-  bool _hasPendingRequest = true;
+  @override
+  void initState() {
+    super.initState();
+  }
+
+
 
   // List of friends
   final List<Map<String, dynamic>> _friends = [
@@ -71,9 +75,11 @@ class _TrybesTabState extends State<TrybesTab> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
+    return Container(
+      color: Colors.transparent,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Sub-Tab Segmented Selector
@@ -115,8 +121,9 @@ class _TrybesTabState extends State<TrybesTab> {
               : _buildFriendsTabSection(),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildMyTrybesSection() {
     return Column(
@@ -477,11 +484,11 @@ class _TrybesTabState extends State<TrybesTab> {
 
   Widget _buildMarcusPostCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1B1B1E),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF2E2E32)),
+        border: Border(
+          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -490,14 +497,14 @@ class _TrybesTabState extends State<TrybesTab> {
           Row(
             children: [
               Container(
-                width: 38,
-                height: 38,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: _accent.withValues(alpha: 0.15),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(19),
+                  borderRadius: BorderRadius.circular(20),
                   child: Image.network(
                     'https://lh3.googleusercontent.com/aida-public/AB6AXuA6WB0sfMAaFfo5F_dwIad6ZGs7ulSBob3FMmrDmhtOJzchQRO1kQ477arp3E_zqR1e2HRU4O9zPR6NulCUQptJRJL0L1KYYDH5oPi92uqu8QsqUw-8xM09asGESGFKFyWIvWKw1Nl41cSnNhPABCmfjR6-XsgdajoAlsmMS8XGD13wiRcs-ayK0jhokb9QShfCCCYpwxgnKyz27HxCLrn5LXsL65kly2HvBKh8-o7-1dMd4-7UWF2HIklx4QomICGvKy6NbcwPmwo',
                     fit: BoxFit.cover,
@@ -505,48 +512,48 @@ class _TrybesTabState extends State<TrybesTab> {
                 ),
               ),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Marcus Chen',
-                    style: GoogleFonts.hankenGrotesk(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Marcus Chen',
+                      style: GoogleFonts.hankenGrotesk(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Elite Runners • 2h ago',
-                    style: GoogleFonts.hankenGrotesk(
-                      color: _accent,
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.bold,
+                    const SizedBox(height: 2),
+                    Text(
+                      '2h ago • Elite Runners',
+                      style: GoogleFonts.hankenGrotesk(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              const Spacer(),
-              const Icon(Icons.more_horiz, color: Colors.white38),
+              const Icon(Icons.more_horiz, color: Colors.white54),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           // Post body text
           Text(
             "Just smashed the Morning Mist 10k Challenge! The humidity was real but the pace felt consistent. Who's next? 🏃‍♂️💨",
             style: GoogleFonts.hankenGrotesk(
               color: Colors.white70,
-              fontSize: 13,
-              height: 1.45,
+              fontSize: 14,
+              height: 1.4,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           // Post image container with float badge
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: SizedBox(
-              height: 160,
+              height: 180,
               width: double.infinity,
               child: Stack(
                 children: [
@@ -586,46 +593,63 @@ class _TrybesTabState extends State<TrybesTab> {
               ),
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           // Interaction buttons
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              GestureDetector(
-                onTap: _toggleMarcusLike,
-                child: Row(
-                  children: [
-                    Icon(
-                      _marcusLiked ? Icons.favorite : Icons.favorite_border_rounded,
-                      color: _marcusLiked ? Colors.red : Colors.white38,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '$_marcusLikesCount',
-                      style: GoogleFonts.hankenGrotesk(
-                        color: Colors.white54,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 24),
               Row(
                 children: [
-                  const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white38, size: 20),
-                  const SizedBox(width: 6),
-                  Text(
-                    '18',
-                    style: GoogleFonts.hankenGrotesk(
-                      color: Colors.white54,
-                      fontSize: 12,
+                  GestureDetector(
+                    onTap: _toggleMarcusLike,
+                    child: Row(
+                      children: [
+                        Icon(
+                          _marcusLiked ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
+                          color: _marcusLiked ? _accent : Colors.white60,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '$_marcusLikesCount Likes',
+                          style: GoogleFonts.hankenGrotesk(
+                            color: Colors.white70,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
+                  const SizedBox(width: 24),
+                  Row(
+                    children: [
+                      const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white60, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        '18',
+                        style: GoogleFonts.hankenGrotesk(
+                          color: Colors.white70,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(width: 24),
-              const Icon(Icons.share_outlined, color: Colors.white38, size: 20),
+              IconButton(
+                icon: const Icon(
+                  Icons.share_outlined,
+                  color: Colors.white60,
+                  size: 20,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                },
+              ),
             ],
           ),
         ],
@@ -635,18 +659,10 @@ class _TrybesTabState extends State<TrybesTab> {
 
   Widget _buildSarahBadgePostCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1B1B1E),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF2E2E32)),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            _accent.withValues(alpha: 0.05),
-            Colors.transparent,
-          ],
+        border: Border(
+          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
         ),
       ),
       child: Column(
@@ -656,14 +672,14 @@ class _TrybesTabState extends State<TrybesTab> {
           Row(
             children: [
               Container(
-                width: 38,
-                height: 38,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: _accent.withValues(alpha: 0.15),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(19),
+                  borderRadius: BorderRadius.circular(20),
                   child: Image.network(
                     'https://lh3.googleusercontent.com/aida-public/AB6AXuDAP1fzvajosGDCVTnUyqq4353TwT5L9hbdzIAbfVjL23jJvqwjbbg9OEdJD3tgrwrmFKd9QBHpnh_P_TAreUaxMF87aHQGluoDMjKAIMNydXCSFOz7NoDC-C0qQ0PAQytcLv3yf-_Ht2YrCPaoIeHWLOjIWHct32nVuTRlVDle0tfc8u70qmwS3nvQ6yfc3tpX2A_w0nrzZOlzqFt3ArMcMGIp3JUD66upNfTKxZBZ-Dwvs3Mtpy1CCuj2LRYp3YM6QZk5MMqMx2A',
                     fit: BoxFit.cover,
@@ -671,39 +687,42 @@ class _TrybesTabState extends State<TrybesTab> {
                 ),
               ),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  RichText(
-                    text: TextSpan(
-                      text: 'Sarah J. ',
-                      style: GoogleFonts.hankenGrotesk(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: 'earned a badge',
-                          style: GoogleFonts.hankenGrotesk(
-                            color: Colors.white54,
-                            fontWeight: FontWeight.normal,
-                          ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        text: 'Sarah J. ',
+                        style: GoogleFonts.hankenGrotesk(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
                         ),
-                      ],
+                        children: [
+                          TextSpan(
+                            text: 'earned a badge',
+                            style: GoogleFonts.hankenGrotesk(
+                              color: Colors.white54,
+                              fontWeight: FontWeight.normal,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Iron Addicts • 4h ago',
-                    style: GoogleFonts.hankenGrotesk(
-                      color: _accent,
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.bold,
+                    const SizedBox(height: 2),
+                    Text(
+                      '4h ago • Iron Addicts',
+                      style: GoogleFonts.hankenGrotesk(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const Icon(Icons.more_horiz, color: Colors.white54),
             ],
           ),
           const SizedBox(height: 16),
@@ -711,7 +730,7 @@ class _TrybesTabState extends State<TrybesTab> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.black12,
+              color: const Color(0xFF1B1B1E),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: Colors.white.withValues(alpha: 0.04)),
             ),
@@ -855,111 +874,8 @@ class _TrybesTabState extends State<TrybesTab> {
             ),
           ),
           const SizedBox(height: 24),
-
-          // Friend Request (Pending) Section
-          if (_hasPendingRequest) ...[
-            _buildSectionHeader('Friend Requests'),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: _cardBg,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: NetworkImage(
-                          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-                        ),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Elena Rostova',
-                          style: GoogleFonts.hankenGrotesk(
-                            color: Colors.white,
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'wants to connect',
-                          style: GoogleFonts.hankenGrotesk(
-                            color: Colors.white38,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          HapticFeedback.lightImpact();
-                          setState(() {
-                            _hasPendingRequest = false;
-                            _friends.insert(0, {
-                              'name': 'Elena Rostova',
-                              'avatar': 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-                              'status': 'Active now',
-                              'detail': 'Thames Rowers • 2.5 hours active',
-                              'isActive': true,
-                            });
-                          });
-                        },
-                        child: Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: _accent,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.check, color: Colors.white, size: 16),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: () {
-                          HapticFeedback.lightImpact();
-                          setState(() {
-                            _hasPendingRequest = false;
-                          });
-                        },
-                        child: Container(
-                          width: 32,
-                          height: 32,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF2C2C30),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.close, color: Colors.white70, size: 16),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-          ],
-
           // Active Friends Section
-          _buildSectionHeader('All Friends'),
+          _buildSectionHeader('Following'),
           const SizedBox(height: 12),
           if (filteredFriends.isEmpty)
             Padding(
@@ -1168,7 +1084,7 @@ class _TrybesTabState extends State<TrybesTab> {
                     SnackBar(
                       backgroundColor: _accent,
                       content: Text(
-                        'Request sent to $name!',
+                        'Now following $name!',
                         style: GoogleFonts.hankenGrotesk(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -1187,7 +1103,7 @@ class _TrybesTabState extends State<TrybesTab> {
                     ),
                   ),
                   child: Text(
-                    hasAdded ? 'Sent' : 'Add',
+                    hasAdded ? 'Following' : 'Follow',
                     style: GoogleFonts.hankenGrotesk(
                       color: hasAdded ? Colors.white38 : _accent,
                       fontSize: 11,

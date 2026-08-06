@@ -1087,41 +1087,131 @@ class _ActivityAnalyticsTabState extends State<ActivityAnalyticsTab> {
       borderRadius: BorderRadius.circular(24),
       child: Stack(
         children: [
-          // Blurred background preview cards
+          // Background preview cards with mock graphs
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: ImageFiltered(
-              imageFilter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color: _cardBg.withValues(alpha: 0.4),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: _cardBg.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'TRAINING LOAD',
+                          style: GoogleFonts.hankenGrotesk(
+                            color: Colors.white38,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Optimal',
+                          style: GoogleFonts.hankenGrotesk(
+                            color: Colors.white70,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        SizedBox(
+                          height: 90,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              _buildMockBar(35, _accent),
+                              _buildMockBar(55, _accent),
+                              _buildMockBar(45, Colors.white24),
+                              _buildMockBar(80, _accent),
+                              _buildMockBar(65, _accent),
+                              _buildMockBar(95, _accent),
+                              _buildMockBar(50, Colors.white24),
+                              _buildMockBar(75, _accent),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Container(
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color: _cardBg.withValues(alpha: 0.4),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: _cardBg.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'RECOVERY SCORE',
+                          style: GoogleFonts.hankenGrotesk(
+                            color: Colors.white38,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '84% Good',
+                          style: GoogleFonts.hankenGrotesk(
+                            color: Colors.white70,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        Center(
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: 80,
+                                height: 80,
+                                child: CircularProgressIndicator(
+                                  value: 0.84,
+                                  strokeWidth: 8,
+                                  backgroundColor: Colors.white10,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    _accent.withValues(alpha: 0.6),
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                '84%',
+                                style: GoogleFonts.anybody(
+                                  color: Colors.white70,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Spacer(),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           Positioned.fill(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
+              filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
               child: Container(
-                color: const Color(0xFF0E0E11).withValues(alpha: 0.55),
+                color: Colors.white.withValues(alpha: 0.18),
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1178,6 +1268,17 @@ class _ActivityAnalyticsTabState extends State<ActivityAnalyticsTab> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMockBar(double height, Color color) {
+    return Container(
+      width: 8,
+      height: height,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(4),
       ),
     );
   }

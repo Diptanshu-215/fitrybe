@@ -7,6 +7,9 @@ import 'customize_goal_screen.dart';
 import 'record_screen.dart';
 import 'trybes_tab.dart';
 import 'clique_tab.dart';
+import 'profile_tab.dart';
+import 'notifications_tab.dart';
+import 'create_post_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   static const routeName = '/HomeScreen';
@@ -19,6 +22,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentNavIndex = 0;
   int _activeTrybesSubTab = 0; // 0: Trybe, 1: Friends
+  int _activeCliqueSubTab = 0; // 0: Activity, 1: Challenges, 2: Synergy
   final Color _accent = const Color(0xFFFF5722);
   final Color _cardBg = const Color(0xFF1F1F22);
   final Color _bg = const Color(0xFF131316);
@@ -63,10 +67,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isSynergyOrbit = _currentNavIndex == 3 && _activeCliqueSubTab == 2;
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: isSynergyOrbit ? Colors.black : _bg,
       appBar: AppBar(
-        backgroundColor: _bg.withValues(alpha: 0.9),
+        backgroundColor: isSynergyOrbit
+            ? Colors.black
+            : _bg.withValues(alpha: 0.9),
         elevation: 0,
         scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
@@ -157,57 +164,58 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
 
                   // Center: Record button
-                  Align(
-                    alignment: Alignment.center,
-                    child: GestureDetector(
-                      onTap: () {
-                        HapticFeedback.mediumImpact();
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const RecordScreen(),
+                  if (_currentNavIndex == 0)
+                    Align(
+                      alignment: Alignment.center,
+                      child: GestureDetector(
+                        onTap: () {
+                          HapticFeedback.mediumImpact();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const RecordScreen(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
                           ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(
-                            0xFFFF5722,
-                          ).withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
+                          decoration: BoxDecoration(
                             color: const Color(
                               0xFFFF5722,
-                            ).withValues(alpha: 0.3),
-                            width: 1,
+                            ).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: const Color(
+                                0xFFFF5722,
+                              ).withValues(alpha: 0.3),
+                              width: 1,
+                            ),
                           ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.fiber_manual_record,
-                              color: Color(0xFFFF5722),
-                              size: 12,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Record',
-                              style: GoogleFonts.hankenGrotesk(
-                                color: const Color(0xFFFF5722),
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.fiber_manual_record,
+                                color: Color(0xFFFF5722),
+                                size: 12,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 6),
+                              Text(
+                                'Record',
+                                style: GoogleFonts.hankenGrotesk(
+                                  color: const Color(0xFFFF5722),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
 
                   // Right: Search + Message (Inbox) + User Profile (Rightmost)
                   Align(
@@ -215,19 +223,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _isSearching = true;
-                            });
-                          },
-                          child: const Icon(
-                            Icons.search,
-                            color: Colors.white70,
-                            size: 22,
+                        if (_currentNavIndex == 0) ...[
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _isSearching = true;
+                              });
+                            },
+                            child: const Icon(
+                              Icons.search,
+                              color: Colors.white70,
+                              size: 22,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
+                          const SizedBox(width: 16),
+                        ],
                         GestureDetector(
                           onTap: () {},
                           child: const Icon(
@@ -237,9 +247,53 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(width: 16),
-                        CircleAvatar(
-                          radius: 14,
-                          backgroundImage: NetworkImage(_userProfileUrl),
+                        GestureDetector(
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Scaffold(
+                                  backgroundColor: const Color(0xFF131316),
+                                  appBar: AppBar(
+                                    backgroundColor: const Color(0xFF131316),
+                                    elevation: 0,
+                                    scrolledUnderElevation: 0,
+                                    leading: IconButton(
+                                      icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+                                      onPressed: () => Navigator.pop(context),
+                                    ),
+                                    title: Text(
+                                      'Profile',
+                                      style: GoogleFonts.anybody(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    actions: [
+                                      IconButton(
+                                        icon: const Icon(Icons.settings_outlined, color: Colors.white),
+                                        onPressed: () {
+                                          HapticFeedback.lightImpact();
+                                          _showSettingsBottomSheet(context);
+                                        },
+                                      ),
+                                      const SizedBox(width: 8),
+                                    ],
+                                  ),
+                                  body: const SingleChildScrollView(
+                                    physics: BouncingScrollPhysics(),
+                                    child: ProfileTab(),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                          child: CircleAvatar(
+                            radius: 14,
+                            backgroundImage: NetworkImage(_userProfileUrl),
+                          ),
                         ),
                       ],
                     ),
@@ -307,10 +361,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     )
                   : null)
-              : _currentNavIndex == 3
+              : _currentNavIndex == 3 || _currentNavIndex == 4
                   ? null
                   : FloatingActionButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CreatePostScreen(),
+                          ),
+                        );
+                      },
                       backgroundColor: _accent,
                       foregroundColor: Colors.white,
                       shape: const CircleBorder(),
@@ -318,6 +380,107 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: const Icon(Icons.add, size: 28),
                     ),
       bottomNavigationBar: _buildBottomNavigationBar(),
+    );
+  }
+
+  void _showSettingsBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF131316),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF131316),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Settings',
+                style: GoogleFonts.anybody(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildSettingsItem(
+                Icons.person_outline_rounded,
+                'Account Settings',
+                () {
+                  Navigator.pop(context);
+                },
+              ),
+              _buildSettingsItem(
+                Icons.notifications_none_rounded,
+                'Notifications',
+                () {
+                  Navigator.pop(context);
+                },
+              ),
+              _buildSettingsItem(
+                Icons.privacy_tip_outlined,
+                'Privacy & Sharing',
+                () {
+                  Navigator.pop(context);
+                },
+              ),
+              _buildSettingsItem(
+                Icons.help_outline_rounded,
+                'Help & Support',
+                () {
+                  Navigator.pop(context);
+                },
+              ),
+              const Divider(color: Colors.white10, height: 24),
+              _buildSettingsItem(
+                Icons.logout_rounded,
+                'Log Out',
+                () {
+                  Navigator.pop(context);
+                },
+                color: Colors.red.shade400,
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSettingsItem(IconData icon, String title, VoidCallback onTap, {Color color = Colors.white70}) {
+    return ListTile(
+      leading: Icon(icon, color: color, size: 22),
+      title: Text(
+        title,
+        style: GoogleFonts.hankenGrotesk(
+          color: color,
+          fontSize: 14.5,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white24, size: 18),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
     );
   }
 
@@ -348,48 +511,20 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         );
       case 3:
-        return const CliqueTab();
-      case 4:
-        return _buildPlaceholderTab(
-          'Notification',
-          Icons.notifications_rounded,
+        return CliqueTab(
+          onSubTabChanged: (subIdx) {
+            setState(() {
+              _activeCliqueSubTab = subIdx;
+            });
+          },
         );
+      case 4:
+        return const NotificationsTab();
       default:
         return const SizedBox.shrink();
     }
   }
 
-  Widget _buildPlaceholderTab(String tabName, IconData icon) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: _accent.withValues(alpha: 0.3), size: 80),
-            const SizedBox(height: 16),
-            Text(
-              tabName,
-              style: GoogleFonts.hankenGrotesk(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Explore $tabName statistics, metrics, and clique discussions coming soon.',
-              style: GoogleFonts.hankenGrotesk(
-                color: Colors.white54,
-                fontSize: 13,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildWeeklyStats() {
     return Container(
@@ -1173,4 +1308,5 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
 }

@@ -1,24 +1,89 @@
+import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CliqueTab extends StatefulWidget {
-  const CliqueTab({super.key});
+  final ValueChanged<int>? onSubTabChanged;
+  const CliqueTab({super.key, this.onSubTabChanged});
 
   @override
   State<CliqueTab> createState() => _CliqueTabState();
 }
 
 class _CliqueTabState extends State<CliqueTab>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final Color _accent = const Color(0xFFFF5722);
   final Color _cardBg = const Color(0xFF1E1E22);
 
-  int _activeSegmentTab = 0; // 0: Activity, 1: Challenges
-  int _activeCategoryIndex = 0; // 0: Running, 1: Walking, etc.
+  int _activeSegmentTab = 0; // 0: Activity, 1: Challenges, 2: Synergy
   bool _joinedLiveRun = false;
 
   late AnimationController _liveBlinkController;
+
+  // Synergy Orbit States
+  double _orbitRotation = math.pi / 2; // Start with first member at bottom center
+  Map<String, dynamic>? _selectedOrbitMember;
+  late AnimationController _orbitFloatController;
+
+  final List<Map<String, dynamic>> _orbitMembers = [
+    {
+      'id': 1,
+      'name': 'Alex',
+      'synergy': '88%',
+      'streak': '5d',
+      'dist': '120k',
+      'time': '15h',
+      'activities': '24',
+      'fav': 'Trail Running',
+      'avatar': 'https://lh3.googleusercontent.com/aida-public/AB6AXupnMbL7ZDy_tRGVMEC1kpOvCgABrgviZkefNrNTx1k9I3H2UqRESPETj4d_xOKaCGFpbAh6kgfIzJV_5tvj9Y8Zji5qRG3PYKUrX0xs_h1nsfbpq44IIVQ2NJD4M8y4znvLPn7lfHirD7jwSLv0UhPmqj5GKzptgONnf5Ky04hsm-9yNnEI5T9B9dl6nhZNdiq0SB7jWKKd4XKSrq0C5I-mWdTuVeytelYr_p8_Ecr1KwFJwlOu_c',
+    },
+    {
+      'id': 2,
+      'name': 'Elena',
+      'synergy': '72%',
+      'streak': '3d',
+      'dist': '45k',
+      'time': '8h',
+      'activities': '12',
+      'fav': 'Yoga',
+      'avatar': 'https://lh3.googleusercontent.com/aida-public/AB6AXuDCQQabYLTohBmurAKr1RUN2IAmRiPuGsqFmInWzHEf__Aq8Lrup0DEecMWshiQqtOB1HAs-8fkX6PyMCEda_L3qGqU0Hd3pZ6C2Y99UPYmQjEvRzMX1Ola5UWClM-T51g-lXpPghN0dwlp7dEba8xTJJu76POnA9jCcIucHyiHs382ck93N92xzFSCg5Ed3_FxMZ4LfiX1hUbWrKGISFRwSRvCzC5BrI0mY3Ul_Hg9WbhgXrTKTFZULhLCg3sEkwFHYGol8j0dPoc',
+    },
+    {
+      'id': 3,
+      'name': 'Marcus',
+      'synergy': '94%',
+      'streak': '12d',
+      'dist': '240k',
+      'time': '28h',
+      'activities': '48',
+      'fav': 'Cycling',
+      'avatar': 'https://lh3.googleusercontent.com/aida-public/AB6AXuBgjRSNIhjmFhRP_8S3tuvi1UgLC68VGmAkh42cOH9VQliTiy7tCc6SthMMHXDQA4u5KVBjJbgUpMGDWngdIa0napfGh8KuaI2R7Vg5APFj_FuEPtSycFIZ0S48-A0mTSDF9pEM1B68-1eG3zJonxwSmwvmtIGw9-09xvJbXE20Bc3pv4KvyqQJNn1emw8tMbAY9KUjxJD_Lmjaw4Duenm3KPou27843mgzy-OF2cdC5p_ej4RvuGJAVUmHusIFbL2nb5sunZYAAqE',
+    },
+    {
+      'id': 4,
+      'name': 'Sarah',
+      'synergy': '82%',
+      'streak': '8d',
+      'dist': '90k',
+      'time': '12h',
+      'activities': '18',
+      'fav': 'Swimming',
+      'avatar': 'https://lh3.googleusercontent.com/aida-public/AB6AXuDKbEFetka61Uzn8RD44STxX3QwAz_xcaaMZ-qzvnunUmBoges-xYFwWQTFpXij18kynNXL1kCjJ7eHZrLBexMEquhDjbpT30ThWjuWEdlZaW_ByrqJdvwg18EsATBXBVms3RCoQVOkpH9PeZiVTAQVE1iGclOOB2OwI8EIuMCCTrdCrl7qcAnsjMphuMjE9MqHlVIp1wCbJOr1ql0Bsee3LkdKqgpT6d9PbFZUGm8ojitxqhE6k0tOEM1_5PnJwz9-xYmUS1H2faU',
+    },
+    {
+      'id': 5,
+      'name': 'Dave',
+      'synergy': '79%',
+      'streak': '4d',
+      'dist': '65k',
+      'time': '9h',
+      'activities': '15',
+      'fav': 'Weightlifting',
+      'avatar': 'https://lh3.googleusercontent.com/aida-public/AB6AXuBWx5umQiyz5zTsO2R59sz6-ZJBoCs_nZs85WNJFvHFAXTu2QdPMQAnLFwnsOjJEqaKcAdcpv9qPq6NQlJV7p3SyDX5EIVrn0bEU9-AP4_8x_xEUVHdOiDAP3wLWp-IHQa66Tlzzu2-LDvsB2lxqL53shYINDqc8cVbqVZ_A5LMSmdfU-nToulwi9Fj81mCD9UTzqkJlubLx5AcUiLKC8JqNPOE2QnZ7YAtQXOmHziYWkiMpbPMGmnYNiBMEoC970DEuzYd659rK9k',
+    },
+  ];
 
   @override
   void initState() {
@@ -27,43 +92,56 @@ class _CliqueTabState extends State<CliqueTab>
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     )..repeat(reverse: true);
+    _orbitFloatController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3000),
+    )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
     _liveBlinkController.dispose();
+    _orbitFloatController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Segmented Navigation Header (Activity / Challenges)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-            child: Container(
-              padding: const EdgeInsets.all(3.0),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1B1B1E),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
-              ),
-              child: Row(
-                children: [
-                  Expanded(child: _buildSegmentButton(0, 'Activity')),
-                  Expanded(child: _buildSegmentButton(1, 'Challenges')),
-                ],
+    return Container(
+      color: _activeSegmentTab == 2 ? Colors.black : Colors.transparent,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Segmented Navigation Header (Activity / Challenges / Synergy)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+              child: Container(
+                padding: const EdgeInsets.all(3.0),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1B1B1E),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(child: _buildSegmentButton(0, 'Activity')),
+                    Expanded(child: _buildSegmentButton(1, 'Challenges')),
+                    Expanded(child: _buildSegmentButton(2, 'Synergy')),
+                  ],
+                ),
               ),
             ),
-          ),
 
-          // Conditional Content
-          _activeSegmentTab == 0 ? _buildActivityTab() : _buildChallengesTab(),
-        ],
+            // Conditional Content
+            _activeSegmentTab == 0
+                ? _buildActivityTab()
+                : _activeSegmentTab == 1
+                    ? _buildChallengesTab()
+                    : _buildSynergyTabSection(),
+          ],
+        ),
       ),
     );
   }
@@ -76,6 +154,7 @@ class _CliqueTabState extends State<CliqueTab>
         setState(() {
           _activeSegmentTab = index;
         });
+        widget.onSubTabChanged?.call(index);
       },
       child: Container(
         height: 40,
@@ -651,10 +730,6 @@ class _CliqueTabState extends State<CliqueTab>
           _buildFeaturedChallengeBanner(),
           const SizedBox(height: 20),
 
-          // Category Chips horizontal list
-          _buildCategoryChipsRow(),
-          const SizedBox(height: 24),
-
           // Active Section
           Text(
             'ACTIVE',
@@ -850,59 +925,6 @@ class _CliqueTabState extends State<CliqueTab>
     );
   }
 
-  Widget _buildCategoryChipsRow() {
-    final List<String> categories = [
-      'Running',
-      'Walking',
-      'Cycling',
-      'Strength',
-    ];
-    return SizedBox(
-      height: 38,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        itemCount: categories.length,
-        itemBuilder: (context, index) {
-          final String cat = categories[index];
-          final bool active = index == _activeCategoryIndex;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: GestureDetector(
-              onTap: () {
-                HapticFeedback.lightImpact();
-                setState(() {
-                  _activeCategoryIndex = index;
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                decoration: BoxDecoration(
-                  color: active ? _accent : _cardBg.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: active
-                        ? _accent.withValues(alpha: 0.5)
-                        : Colors.white10,
-                  ),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  cat,
-                  style: GoogleFonts.hankenGrotesk(
-                    color: active ? Colors.white : Colors.white54,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   Widget _buildActiveChallengeCard() {
     return Container(
       padding: const EdgeInsets.all(18),
@@ -1043,5 +1065,571 @@ class _CliqueTabState extends State<CliqueTab>
         ],
       ),
     );
+  }
+
+  Widget _buildSynergyTabSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
+          Text(
+            'Synergy Orbit',
+            style: GoogleFonts.anybody(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Explore your closest connections.',
+            style: GoogleFonts.hankenGrotesk(
+              color: Colors.white38,
+              fontSize: 12.5,
+            ),
+          ),
+          const SizedBox(height: 32),
+
+          // Orbit Visualization Container
+          _buildOrbitView(),
+          const SizedBox(height: 24),
+
+          // Slide-up Details Container
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 300),
+            firstCurve: Curves.easeInOut,
+            secondCurve: Curves.easeInOut,
+            crossFadeState: _selectedOrbitMember != null
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            firstChild: const SizedBox(height: 0),
+            secondChild: _buildSelectedMemberDetailsSheet(),
+          ),
+          const SizedBox(height: 100),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrbitView() {
+    const double orbitSize = 280.0;
+    const double radius = 100.0;
+    const double centerOffset = orbitSize / 2;
+
+    // Calculate coordinates for connection line
+    Offset? lineStart;
+    Offset? lineEnd;
+    if (_selectedOrbitMember != null) {
+      final index = _orbitMembers.indexWhere((m) => m['id'] == _selectedOrbitMember!['id']);
+      if (index != -1) {
+        final double baseAngle = (index / _orbitMembers.length) * 2 * math.pi;
+        final double angle = baseAngle + _orbitRotation;
+        lineStart = const Offset(centerOffset, centerOffset);
+        lineEnd = Offset(
+          centerOffset + radius * math.cos(angle),
+          centerOffset + radius * math.sin(angle),
+        );
+      }
+    }
+
+    return Center(
+      child: Container(
+        width: orbitSize,
+        height: orbitSize,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
+        ),
+        child: GestureDetector(
+          onPanUpdate: (details) {
+            if (_selectedOrbitMember == null) {
+              setState(() {
+                _orbitRotation += details.delta.dx * 0.007;
+              });
+            }
+          },
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Floating gradient 1
+              AnimatedBuilder(
+                animation: _orbitFloatController,
+                builder: (context, child) {
+                  final double floatVal = _orbitFloatController.value;
+                  return Positioned(
+                    left: centerOffset - 120 + 20 * math.sin(floatVal * 2 * math.pi),
+                    top: centerOffset - 120 + 20 * math.cos(floatVal * 2 * math.pi),
+                    child: Container(
+                      width: 240,
+                      height: 240,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            _accent.withValues(alpha: 0.12),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              // Floating gradient 2
+              AnimatedBuilder(
+                animation: _orbitFloatController,
+                builder: (context, child) {
+                  final double floatVal = _orbitFloatController.value;
+                  return Positioned(
+                    left: centerOffset - 100 - 25 * math.cos(floatVal * 2 * math.pi),
+                    top: centerOffset - 100 - 25 * math.sin(floatVal * 2 * math.pi),
+                    child: Container(
+                      width: 200,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            const Color(0xFFFF9800).withValues(alpha: 0.08),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              // Rotating Line Connection (Custom Painter)
+              if (lineStart != null && lineEnd != null)
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: OrbitLinePainter(
+                      start: lineStart,
+                      end: lineEnd,
+                      color: _accent,
+                    ),
+                  ),
+                ),
+
+              // Orbit rim dashed border helper
+              Positioned(
+                left: centerOffset - radius,
+                top: centerOffset - radius,
+                child: Container(
+                  width: radius * 2,
+                  height: radius * 2,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.04),
+                      style: BorderStyle.solid,
+                    ),
+                  ),
+                ),
+              ),
+
+              // Center User Avatar (wrapped in AnimatedBuilder for float)
+              AnimatedBuilder(
+                animation: _orbitFloatController,
+                builder: (context, child) {
+                  final double floatVal = _orbitFloatController.value;
+                  final double yOffset = floatVal * -4.0;
+                  return Positioned(
+                    left: centerOffset - 32,
+                    top: centerOffset - 32 + yOffset,
+                    child: child!,
+                  );
+                },
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: _accent, width: 3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _accent.withValues(alpha: 0.25),
+                        blurRadius: 15,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(2),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        image: NetworkImage(
+                          'https://lh3.googleusercontent.com/aida-public/AB6AXuByqReTPoPaqgAoIGx5u7rtuMwXJgIGXBB_-tKwSu1hAOaFlZpNn1b9K0eaZKQBim5F1jY9-ZA3oycSmvuwdqXmtrlvnJSzi4PTRsGa8NI-c-W27mqOrL3PXiWF6noRE4HMHeuWFTHZzqw9Hm5NlZXXXZDEAJuf1WW9Ob3LT4_oEQrTno7uUu5kk6Pt5SWCdDZ4B7NlGVZhIAJnN4OufENxsprStF0wCRDAfIw1YA6Q1J4cHLCNqby_5MwswfBa5iPlMoWCtSr7pxQ',
+                        ),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Orbiting Members (wrapped in AnimatedBuilder for wavy phase-shifted floating)
+              ...List.generate(_orbitMembers.length, (index) {
+                final member = _orbitMembers[index];
+                final double baseAngle = (index / _orbitMembers.length) * 2 * math.pi;
+                final double angle = baseAngle + _orbitRotation;
+
+                final isSelected = _selectedOrbitMember != null && _selectedOrbitMember!['id'] == member['id'];
+                final isAnySelected = _selectedOrbitMember != null;
+
+                // Position math
+                final double x = centerOffset + radius * math.cos(angle) - 24;
+                final double y = centerOffset + radius * math.sin(angle) - 24;
+
+                return AnimatedBuilder(
+                  animation: _orbitFloatController,
+                  builder: (context, child) {
+                    final double floatVal = _orbitFloatController.value;
+                    // Introduce a phase shift so avatars float asynchronously/wavy
+                    final double phaseAngle = baseAngle;
+                    final double yOffset = math.sin(floatVal * 2 * math.pi + phaseAngle) * -4.0;
+                    return Positioned(
+                      left: x,
+                      top: y + yOffset,
+                      child: child!,
+                    );
+                  },
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      setState(() {
+                        if (_selectedOrbitMember != null && _selectedOrbitMember!['id'] == member['id']) {
+                          _selectedOrbitMember = null;
+                        } else {
+                          _selectedOrbitMember = member;
+                          // Rotate orbit to bring this clicked member to the front (bottom center = 90 deg / math.pi/2)
+                          _orbitRotation = (math.pi / 2) - baseAngle;
+                        }
+                      });
+                    },
+                    child: AnimatedOpacity(
+                      opacity: isSelected ? 1.0 : (isAnySelected ? 0.35 : 1.0),
+                      duration: const Duration(milliseconds: 300),
+                      child: AnimatedScale(
+                        scale: isSelected ? 1.25 : 1.0,
+                        duration: const Duration(milliseconds: 300),
+                        child: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected ? _accent : Colors.white10,
+                              width: isSelected ? 2 : 1.5,
+                            ),
+                            image: DecorationImage(
+                              image: NetworkImage(member['avatar'] as String),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSelectedMemberDetailsSheet() {
+    if (_selectedOrbitMember == null) return const SizedBox(height: 0);
+
+    final member = _selectedOrbitMember!;
+    final synergyNum = double.tryParse(member['synergy'].replaceAll('%', '')) ?? 80;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _cardBg,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header: Avatar, Name, Progress ring
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        image: NetworkImage(member['avatar'] as String),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        member['name'] as String,
+                        style: GoogleFonts.anybody(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'RISING DUO',
+                        style: GoogleFonts.hankenGrotesk(
+                          color: _accent,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              // Synergy circular progress
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    width: 60,
+                    height: 60,
+                    child: CircularProgressIndicator(
+                      value: synergyNum / 100,
+                      strokeWidth: 6,
+                      backgroundColor: Colors.white10,
+                      valueColor: AlwaysStoppedAnimation<Color>(_accent),
+                    ),
+                  ),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        member['synergy'] as String,
+                        style: GoogleFonts.anybody(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'MATCH',
+                        style: GoogleFonts.hankenGrotesk(
+                          color: Colors.white38,
+                          fontSize: 6,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Grid with stats
+          Row(
+            children: [
+              Expanded(
+                child: _buildSynergyStatBox('Activities', member['activities'] as String? ?? '24'),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildSynergyStatBox('Distance', member['dist']),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildSynergyStatBox('Streak', member['streak']),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Shared Timeline
+          Text(
+            'SHARED ACTIVITY TIMELINE',
+            style: GoogleFonts.hankenGrotesk(
+              color: Colors.white38,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.0,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 48,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: 10,
+              itemBuilder: (context, idx) {
+                final hasActivity = idx % 3 == 0;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: hasActivity ? _accent.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.03),
+                          border: Border.all(
+                            color: hasActivity ? _accent.withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.05),
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: hasActivity
+                            ? Container(
+                                width: 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: _accent,
+                                  shape: BoxShape.circle,
+                                ),
+                              )
+                            : null,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${30 - idx}d',
+                        style: GoogleFonts.hankenGrotesk(
+                          color: Colors.white38,
+                          fontSize: 9,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // History CTA
+          GestureDetector(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: _accent,
+                  content: Text(
+                    'Shared activity history with ${member['name']} coming soon!',
+                    style: GoogleFonts.hankenGrotesk(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: _accent,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                'View Full History',
+                style: GoogleFonts.hankenGrotesk(
+                  color: Colors.white,
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSynergyStatBox(String label, String val) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF161619),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            val,
+            style: GoogleFonts.anybody(
+              color: _accent,
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: GoogleFonts.hankenGrotesk(
+              color: Colors.white38,
+              fontSize: 10,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class OrbitLinePainter extends CustomPainter {
+  final Offset start;
+  final Offset end;
+  final Color color;
+
+  OrbitLinePainter({required this.start, required this.end, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke;
+    
+    // Gradient shader along the line
+    paint.shader = ui.Gradient.linear(
+      start,
+      end,
+      [color.withValues(alpha: 0.1), color],
+    );
+
+    canvas.drawLine(start, end, paint);
+
+    // Glowing dot at the end
+    final glowPaint = Paint()
+      ..color = color
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    canvas.drawCircle(end, 6, glowPaint);
+    
+    final dotPaint = Paint()..color = Colors.white;
+    canvas.drawCircle(end, 3, dotPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant OrbitLinePainter oldDelegate) {
+    return oldDelegate.start != start || oldDelegate.end != end || oldDelegate.color != color;
   }
 }

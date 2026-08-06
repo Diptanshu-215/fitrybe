@@ -70,5 +70,11 @@
 	<string>fitrybe needs access to read your health metrics to show step counts and active energy metrics.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>fitrybe needs access to write fitness data to track and log your workout sessions.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>fitrybe needs access to your photo library so you can add photos to your posts.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>fitrybe needs camera access so you can take photos for your posts.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>fitrybe uses your location to tag it in your posts.</string>
 </dict>
 </plist>
