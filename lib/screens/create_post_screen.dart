@@ -128,7 +128,8 @@ class _CreatePostScreenState extends State<CreatePostScreen>
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
         _showLocationError(
-            'Location permission is required. Please allow it in app settings.');
+          'Location permission is required. Please allow it in app settings.',
+        );
         return;
       }
 
@@ -265,23 +266,17 @@ class _CreatePostScreenState extends State<CreatePostScreen>
         ),
         centerTitle: true,
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: GestureDetector(
-              onTap: _handlePost,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-                decoration: BoxDecoration(
-                  color: _accent,
-                  borderRadius: BorderRadius.circular(20),
-                ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: GestureDetector(
+                onTap: _handlePost,
                 child: Text(
                   'Post',
                   style: GoogleFonts.hankenGrotesk(
-                    color: Colors.white,
+                    color: _accent,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    fontSize: 13.5,
                   ),
                 ),
               ),
@@ -295,8 +290,7 @@ class _CreatePostScreenState extends State<CreatePostScreen>
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -306,27 +300,26 @@ class _CreatePostScreenState extends State<CreatePostScreen>
                     physics: const BouncingScrollPhysics(),
                     child: Row(
                       children: _postTypes.map((type) {
-                        final isSelected =
-                            _selectedPostType == type['label'];
+                        final isSelected = _selectedPostType == type['label'];
                         return GestureDetector(
                           onTap: () {
                             HapticFeedback.selectionClick();
-                            setState(
-                                () => _selectedPostType = type['label']);
+                            setState(() => _selectedPostType = type['label']);
                           },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             margin: const EdgeInsets.only(right: 8),
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 8),
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
                               color: isSelected ? _accent : _cardBg,
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: isSelected
                                     ? _accent
-                                    : Colors.white
-                                        .withValues(alpha: 0.07),
+                                    : Colors.white.withValues(alpha: 0.07),
                               ),
                             ),
                             child: Row(
@@ -477,14 +470,15 @@ class _CreatePostScreenState extends State<CreatePostScreen>
                       return GestureDetector(
                         onTap: () {
                           HapticFeedback.selectionClick();
-                          setState(
-                              () => _selectedAudience = aud['label']);
+                          setState(() => _selectedAudience = aud['label']);
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           margin: const EdgeInsets.only(right: 8),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? _accent.withValues(alpha: 0.12)
@@ -501,17 +495,14 @@ class _CreatePostScreenState extends State<CreatePostScreen>
                             children: [
                               Icon(
                                 aud['icon'] as IconData,
-                                color:
-                                    isSelected ? _accent : Colors.white38,
+                                color: isSelected ? _accent : Colors.white38,
                                 size: 14,
                               ),
                               const SizedBox(width: 6),
                               Text(
                                 aud['label'] as String,
                                 style: GoogleFonts.hankenGrotesk(
-                                  color: isSelected
-                                      ? _accent
-                                      : Colors.white54,
+                                  color: isSelected ? _accent : Colors.white54,
                                   fontSize: 12,
                                   fontWeight: isSelected
                                       ? FontWeight.bold
@@ -543,8 +534,7 @@ class _CreatePostScreenState extends State<CreatePostScreen>
             decoration: BoxDecoration(
               color: _bg,
               border: Border(
-                top: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.05)),
+                top: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
               ),
             ),
             child: Row(
@@ -593,9 +583,7 @@ class _CreatePostScreenState extends State<CreatePostScreen>
         mainAxisSpacing: 6,
         childAspectRatio: 1,
       ),
-      itemCount: _selectedImages.length < 5
-          ? _selectedImages.length
-          : 5,
+      itemCount: _selectedImages.length < 5 ? _selectedImages.length : 5,
       itemBuilder: (context, index) {
         if (index == 4 && _selectedImages.length > 5) {
           // overflow indicator
@@ -619,11 +607,7 @@ class _CreatePostScreenState extends State<CreatePostScreen>
               width: double.infinity,
             ),
           ),
-          Positioned(
-            top: 8,
-            right: 8,
-            child: _buildRemoveButton(index),
-          ),
+          Positioned(top: 8, right: 8, child: _buildRemoveButton(index)),
         ],
       ),
     );
@@ -635,16 +619,9 @@ class _CreatePostScreenState extends State<CreatePostScreen>
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(10),
-          child: Image.file(
-            File(image.path),
-            fit: BoxFit.cover,
-          ),
+          child: Image.file(File(image.path), fit: BoxFit.cover),
         ),
-        Positioned(
-          top: 4,
-          right: 4,
-          child: _buildRemoveButton(index),
-        ),
+        Positioned(top: 4, right: 4, child: _buildRemoveButton(index)),
       ],
     );
   }
@@ -711,9 +688,7 @@ class _CreatePostScreenState extends State<CreatePostScreen>
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         decoration: BoxDecoration(
-          color: active
-              ? _accent.withValues(alpha: 0.12)
-              : _cardBg,
+          color: active ? _accent.withValues(alpha: 0.12) : _cardBg,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: active
@@ -724,8 +699,7 @@ class _CreatePostScreenState extends State<CreatePostScreen>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon,
-                color: active ? _accent : Colors.white54, size: 15),
+            Icon(icon, color: active ? _accent : Colors.white54, size: 15),
             const SizedBox(width: 6),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 130),
@@ -735,8 +709,7 @@ class _CreatePostScreenState extends State<CreatePostScreen>
                 style: GoogleFonts.hankenGrotesk(
                   color: active ? _accent : Colors.white54,
                   fontSize: 12,
-                  fontWeight:
-                      active ? FontWeight.bold : FontWeight.w500,
+                  fontWeight: active ? FontWeight.bold : FontWeight.w500,
                 ),
               ),
             ),

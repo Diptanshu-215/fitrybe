@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'clique_live_activity_screen.dart';
 
 class CliqueTab extends StatefulWidget {
   final ValueChanged<int>? onSubTabChanged;
@@ -18,7 +19,78 @@ class _CliqueTabState extends State<CliqueTab>
   final Color _cardBg = const Color(0xFF1E1E22);
 
   int _activeSegmentTab = 0; // 0: Activity, 1: Challenges, 2: Synergy
-  bool _joinedLiveRun = false;
+  final String _selectedCategory = 'All';
+
+  final Set<String> _joinedUpcomingIds = {};
+
+  final List<Map<String, dynamic>> _liveActivities = [
+    {
+      'id': 'live_1',
+      'title': 'Morning Trail Run ☀️',
+      'clique': 'Daily Cardio Crew',
+      'category': 'Running',
+      'type': 'Running',
+      'icon': Icons.directions_run_rounded,
+      'progress': 0.72,
+      'progressText': '3.6 / 5.0 KM',
+      'participantsCount': 4,
+      'maxParticipants': 5,
+    },
+    {
+      'id': 'live_2',
+      'title': 'Sunset Speed Cycling 🚴',
+      'clique': 'Bay Area Cyclists',
+      'category': 'Cycling',
+      'type': 'Cycling',
+      'icon': Icons.directions_bike_rounded,
+      'progress': 0.45,
+      'progressText': '11.2 / 25.0 KM',
+      'participantsCount': 6,
+      'maxParticipants': 8,
+    },
+  ];
+
+  final List<Map<String, dynamic>> _upcomingActivities = [
+    {
+      'id': 'up_1',
+      'title': 'Evening Walk',
+      'category': 'Walking',
+      'type': 'Walking',
+      'icon': Icons.directions_walk_rounded,
+      'dateDay': '19',
+      'dateMonth': 'OCT',
+      'time': '7:00 PM',
+      'target': '10k Steps Target',
+      'participantsCount': 5,
+      'maxParticipants': 8,
+    },
+    {
+      'id': 'up_2',
+      'title': 'Weekend 50K Bike Ride',
+      'category': 'Cycling',
+      'type': 'Cycling',
+      'icon': Icons.directions_bike_rounded,
+      'dateDay': '22',
+      'dateMonth': 'OCT',
+      'time': '6:30 AM',
+      'target': '50.0 KM Distance',
+      'participantsCount': 7,
+      'maxParticipants': 12,
+    },
+    {
+      'id': 'up_3',
+      'title': 'Sunrise Lake Swim',
+      'category': 'Swimming',
+      'type': 'Swimming',
+      'icon': Icons.pool_rounded,
+      'dateDay': '24',
+      'dateMonth': 'OCT',
+      'time': '8:00 AM',
+      'target': '2.0 KM Laps',
+      'participantsCount': 3,
+      'maxParticipants': 6,
+    },
+  ];
 
   late AnimationController _liveBlinkController;
 
@@ -114,23 +186,25 @@ class _CliqueTabState extends State<CliqueTab>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Segmented Navigation Header (Activity / Challenges / Synergy)
+            // Sub-Tab Selector (Flat under-line style)
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-              child: Container(
-                padding: const EdgeInsets.all(3.0),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1B1B1E),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(child: _buildSegmentButton(0, 'Activity')),
-                    Expanded(child: _buildSegmentButton(1, 'Challenges')),
-                    Expanded(child: _buildSegmentButton(2, 'Synergy')),
-                  ],
-                ),
+              padding: const EdgeInsets.only(top: 16, bottom: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(child: _buildSegmentItem(0, 'Activity')),
+                      Expanded(child: _buildSegmentItem(1, 'Challenges')),
+                      Expanded(child: _buildSegmentItem(2, 'Synergy')),
+                    ],
+                  ),
+                  Container(
+                    height: 1,
+                    width: double.infinity,
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
+                ],
               ),
             ),
 
@@ -146,7 +220,7 @@ class _CliqueTabState extends State<CliqueTab>
     );
   }
 
-  Widget _buildSegmentButton(int index, String label) {
+  Widget _buildSegmentItem(int index, String label) {
     final bool isActive = _activeSegmentTab == index;
     return GestureDetector(
       onTap: () {
@@ -157,17 +231,21 @@ class _CliqueTabState extends State<CliqueTab>
         widget.onSubTabChanged?.call(index);
       },
       child: Container(
-        height: 40,
-        decoration: BoxDecoration(
-          color: isActive ? const Color(0xFF2C2C30) : Colors.transparent,
-          borderRadius: BorderRadius.circular(21),
-        ),
+        padding: const EdgeInsets.only(bottom: 12),
         alignment: Alignment.center,
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: isActive ? _accent : Colors.transparent,
+              width: 2,
+            ),
+          ),
+        ),
         child: Text(
           label,
           style: GoogleFonts.hankenGrotesk(
-            color: isActive ? Colors.white : Colors.white38,
-            fontSize: 13.5,
+            color: isActive ? _accent : Colors.white38,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -207,83 +285,151 @@ class _CliqueTabState extends State<CliqueTab>
                   ),
                 ],
               ),
-              GestureDetector(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      backgroundColor: _accent,
-                      content: Text(
-                        'Create Clique Activity coming soon!',
-                        style: GoogleFonts.hankenGrotesk(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _accent,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _accent.withValues(alpha: 0.25),
-                        blurRadius: 10,
-                        spreadRadius: 1,
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.add, color: Colors.white, size: 16),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Create',
-                        style: GoogleFonts.hankenGrotesk(
-                          color: Colors.white,
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
             ],
           ),
-          const SizedBox(height: 20),
-
-          // Live Morning Run Card
-          _buildLiveActivityCard(),
           const SizedBox(height: 24),
 
-          // Upcoming Section
-          Text(
-            'UPCOMING',
-            style: GoogleFonts.hankenGrotesk(
-              color: Colors.white38,
-              fontSize: 10.5,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 12),
+          // Render No Activity State directly
+          if (_liveActivities.isEmpty && _upcomingActivities.isEmpty)
+            _buildEmptyActivityState()
+          else ...[
+            if (_getFilteredLiveActivities().isNotEmpty) ...[
+              // Live Activities Section
+              Text(
+                'LIVE NOW',
+                style: GoogleFonts.hankenGrotesk(
+                  color: Colors.white38,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: 12),
 
-          // Evening Walk Card
-          _buildUpcomingActivityCard(),
+              // Render filtered Live Activities
+              ..._getFilteredLiveActivities().map((act) => Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: _buildLiveActivityCardDynamic(act),
+                  )),
+            ],
+            if (_getFilteredUpcomingActivities().isNotEmpty) ...[
+              // Upcoming Section
+              Text(
+                'UPCOMING',
+                style: GoogleFonts.hankenGrotesk(
+                  color: Colors.white38,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Render filtered Upcoming Activities
+              ..._getFilteredUpcomingActivities().map((act) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _buildUpcomingActivityCardDynamic(act),
+                  )),
+            ],
+          ],
           const SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  Widget _buildLiveActivityCard() {
+  List<Map<String, dynamic>> _getFilteredLiveActivities() {
+    if (_selectedCategory == 'All') return _liveActivities;
+    return _liveActivities
+        .where((a) => a['category'] == _selectedCategory)
+        .toList();
+  }
+
+  List<Map<String, dynamic>> _getFilteredUpcomingActivities() {
+    if (_selectedCategory == 'All') return _upcomingActivities;
+    return _upcomingActivities
+        .where((a) => a['category'] == _selectedCategory)
+        .toList();
+  }
+
+  Widget _buildEmptyActivityState() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+      decoration: BoxDecoration(
+        color: _cardBg.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 20,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Glowing Icon Badge
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: _accent.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+              border: Border.all(color: _accent.withValues(alpha: 0.3), width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: _accent.withValues(alpha: 0.2),
+                  blurRadius: 20,
+                  spreadRadius: 4,
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.directions_run_rounded,
+              color: _accent,
+              size: 40,
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          Text(
+            'No Clique Activities Yet',
+            style: GoogleFonts.hankenGrotesk(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Join a group workout with your friends or schedule your first Clique activity to track live together.',
+            style: GoogleFonts.hankenGrotesk(
+              color: Colors.white54,
+              fontSize: 13.5,
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
+
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLiveActivityCardDynamic(Map<String, dynamic> act) {
+    final String title = act['title'] as String;
+    final String clique = act['clique'] as String;
+    final String actType = act['type'] as String? ?? 'Running';
+    final IconData icon = act['icon'] as IconData;
+    final double progress = (act['progress'] as num).toDouble();
+    final String progressText = act['progressText'] as String;
+    final int pCount = act['participantsCount'] as int;
+    final int maxP = act['maxParticipants'] as int;
+
     return Container(
       decoration: BoxDecoration(
         color: _cardBg.withValues(alpha: 0.7),
@@ -294,15 +440,12 @@ class _CliqueTabState extends State<CliqueTab>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Live indicator
+          // Live indicator header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: _accent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -335,7 +478,7 @@ class _CliqueTabState extends State<CliqueTab>
                 ),
               ),
               Text(
-                'Started 12m ago',
+                'Active Session',
                 style: GoogleFonts.hankenGrotesk(
                   color: Colors.white38,
                   fontSize: 11.5,
@@ -345,7 +488,7 @@ class _CliqueTabState extends State<CliqueTab>
           ),
           const SizedBox(height: 16),
 
-          // Activity Icon & Title
+          // Title Row
           Row(
             children: [
               Container(
@@ -355,11 +498,7 @@ class _CliqueTabState extends State<CliqueTab>
                   color: _accent.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(
-                  Icons.directions_run_rounded,
-                  color: _accent,
-                  size: 26,
-                ),
+                child: Icon(icon, color: _accent, size: 26),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -367,7 +506,7 @@ class _CliqueTabState extends State<CliqueTab>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Morning Run ☀️',
+                      title,
                       style: GoogleFonts.hankenGrotesk(
                         color: Colors.white,
                         fontSize: 16,
@@ -376,7 +515,7 @@ class _CliqueTabState extends State<CliqueTab>
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Daily Cardio Crew',
+                      clique,
                       style: GoogleFonts.hankenGrotesk(
                         color: Colors.white38,
                         fontSize: 12,
@@ -389,12 +528,12 @@ class _CliqueTabState extends State<CliqueTab>
           ),
           const SizedBox(height: 20),
 
-          // Goal Met Progress Bar
+          // Progress
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '72% Goal Met',
+                '${(progress * 100).toInt()}% Goal Met',
                 style: GoogleFonts.hankenGrotesk(
                   color: _accent,
                   fontSize: 13,
@@ -402,7 +541,7 @@ class _CliqueTabState extends State<CliqueTab>
                 ),
               ),
               Text(
-                '3.6 / 5.0 KM',
+                progressText,
                 style: GoogleFonts.hankenGrotesk(
                   color: Colors.white54,
                   fontSize: 11.5,
@@ -414,7 +553,7 @@ class _CliqueTabState extends State<CliqueTab>
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
-              value: 0.72,
+              value: progress,
               minHeight: 6,
               backgroundColor: Colors.white10,
               valueColor: AlwaysStoppedAnimation<Color>(_accent),
@@ -422,36 +561,20 @@ class _CliqueTabState extends State<CliqueTab>
           ),
           const SizedBox(height: 20),
 
-          // Participants & Join Buttons
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Stacked user avatars
               Row(
                 children: [
                   _buildStackedAvatar(
-                    'https://lh3.googleusercontent.com/aida-public/AB6AXuD8hDKxj4-r6R8f8AdaM3EVji_zeIwgSPFO5cPsoOQdNnP2WMtFn16ghzR2EV6BKxYC90N4Sce9VEb6Y6a7Noeqmgxx6Am9aDdSbwLwp6V74i0Vp_NC2R9wRxWYrDEXj0Y6SvchlV2xp_8UHLq8c1OCDhk6a5bK8s9bNiprCklvCQ20HpPN5Tvgee3pQP9V-fk8hxq1CmeJxvGcXy3xZSfWO5hMiAjrtJ8ZvPFGqPf-IapnbkrQYWw5eJ-MdhIpI6ToFK-8sTj6hRA',
-                  ),
+                      'https://lh3.googleusercontent.com/aida-public/AB6AXuD8hDKxj4-r6R8f8AdaM3EVji_zeIwgSPFO5cPsoOQdNnP2WMtFn16ghzR2EV6BKxYC90N4Sce9VEb6Y6a7Noeqmgxx6Am9aDdSbwLwp6V74i0Vp_NC2R9wRxWYrDEXj0Y6SvchlV2xp_8UHLq8c1OCDhk6a5bK8s9bNiprCklvCQ20HpPN5Tvgee3pQP9V-fk8hxq1CmeJxvGcXy3xZSfWO5hMiAjrtJ8ZvPFGqPf-IapnbkrQYWw5eJ-MdhIpI6ToFK-8sTj6hRA'),
                   const SizedBox(width: 4),
                   _buildStackedAvatar(
-                    'https://lh3.googleusercontent.com/aida-public/AB6AXuB-kK8DqGrsg2wgRF85wfvfo2roceLvv9THYdX7crrxp1AbPklw21sOX74b65g2KizCw9AkkgKJr95f4Ev1U2IXq3EXYuBCA1yd0E4RvpwW0QKxmUOTEwFgUYFb1VQK1vtuEmghq0wd5FAvXb-pnosFKa-TyuojSRalMGTz8wVBgBmDj76b1taOqJcKlSB2XRIpSz42oy5itv9an0NzwNm-CNbyDk2DQVCtFQV8RdP5TbtmJbzost5vs8-5LQxLUNRW89xvRqmNAWI',
-                  ),
-                  const SizedBox(width: 4),
-                  _buildStackedAvatar(
-                    'https://lh3.googleusercontent.com/aida-public/AB6AXuBXTVa1geTgmg-ddAxVrrOOJGkquwNpqpG9ny6VZ4764n6Fuy6Y3_BN8nmW9r905qjmaFLGrKo8LMPtc-x_edkdvwEMwM-Lt74Ary6r8lH2i1SBak_nK-VKRzFa1ZLe3rW9nVY6bwceYPdLUCpUUR5Lf85y3oHUA739fLYxb_duJEKE3Rcpu21BFqZP5gwHJTSWEnaARyNd03HjWQ2TIEq54rZSp6R2jwape6VitIcSlhnNDogAn1wwMwwcZw7W-XvhcdrsaLclYXs',
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '+1 more',
-                    style: GoogleFonts.hankenGrotesk(
-                      color: Colors.white38,
-                      fontSize: 11.5,
-                    ),
-                  ),
+                      'https://lh3.googleusercontent.com/aida-public/AB6AXuB-kK8DqGrsg2wgRF85wfvfo2roceLvv9THYdX7crrxp1AbPklw21sOX74b65g2KizCw9AkkgKJr95f4Ev1U2IXq3EXYuBCA1yd0E4RvpwW0QKxmUOTEwFgUYFb1VQK1vtuEmghq0wd5FAvXb-pnosFKa-TyuojSRalMGTz8wVBgBmDj76b1taOqJcKlSB2XRIpSz42oy5itv9an0NzwNm-CNbyDk2DQVCtFQV8RdP5TbtmJbzost5vs8-5LQxLUNRW89xvRqmNAWI'),
                 ],
               ),
               Text(
-                '4/5 Participants',
+                '$pCount/$maxP Participants',
                 style: GoogleFonts.hankenGrotesk(
                   color: Colors.white38,
                   fontSize: 12,
@@ -459,88 +582,44 @@ class _CliqueTabState extends State<CliqueTab>
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
 
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    HapticFeedback.mediumImpact();
-                    setState(() {
-                      _joinedLiveRun = !_joinedLiveRun;
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: _accent,
-                        content: Text(
-                          _joinedLiveRun
-                              ? 'Joined Morning Run successfully!'
-                              : 'Left Morning Run.',
-                          style: GoogleFonts.hankenGrotesk(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: _joinedLiveRun ? Colors.white.withValues(alpha: 0.08) : _accent,
-                      borderRadius: BorderRadius.circular(16),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: () {
+                HapticFeedback.heavyImpact();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CliqueLiveActivityScreen(
+                      activityName: title,
+                      activityType: actType,
+                      activityIcon: icon,
                     ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      _joinedLiveRun ? 'Leave Activity' : 'Join Activity',
-                      style: GoogleFonts.hankenGrotesk(
-                        color: Colors.white,
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _accent,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'Open Live Session',
+                  style: GoogleFonts.hankenGrotesk(
+                    color: Colors.white,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: _accent,
-                        content: Text(
-                          'Connecting to Live Lobby...',
-                          style: GoogleFonts.hankenGrotesk(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFF2E2E32)),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      'Open Live Session',
-                      style: GoogleFonts.hankenGrotesk(
-                        color: Colors.white,
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ],
       ),
@@ -559,13 +638,26 @@ class _CliqueTabState extends State<CliqueTab>
     );
   }
 
-  Widget _buildUpcomingActivityCard() {
+  Widget _buildUpcomingActivityCardDynamic(Map<String, dynamic> act) {
+    final String id = act['id'] as String;
+    final String title = act['title'] as String;
+    final String actType = act['type'] as String? ?? 'Walking';
+    final IconData icon = act['icon'] as IconData;
+    final String dateDay = act['dateDay'] as String;
+    final String dateMonth = act['dateMonth'] as String;
+    final String time = act['time'] as String;
+    final int pCount = act['participantsCount'] as int;
+    final bool isJoined = _joinedUpcomingIds.contains(id);
+    final int displayPCount = isJoined ? pCount + 1 : pCount;
+
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: _cardBg.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
+        border: Border.all(
+          color: isJoined ? _accent.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.03),
+        ),
       ),
       child: Row(
         children: [
@@ -575,13 +667,12 @@ class _CliqueTabState extends State<CliqueTab>
             decoration: BoxDecoration(
               color: const Color(0xFF2A2A2D),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.02)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '19',
+                  dateDay,
                   style: GoogleFonts.anybody(
                     color: Colors.white,
                     fontSize: 18,
@@ -589,7 +680,7 @@ class _CliqueTabState extends State<CliqueTab>
                   ),
                 ),
                 Text(
-                  'OCT',
+                  dateMonth,
                   style: GoogleFonts.hankenGrotesk(
                     color: Colors.white38,
                     fontSize: 10,
@@ -607,7 +698,7 @@ class _CliqueTabState extends State<CliqueTab>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Evening Walk',
+                  title,
                   style: GoogleFonts.hankenGrotesk(
                     color: Colors.white,
                     fontSize: 14.5,
@@ -615,46 +706,25 @@ class _CliqueTabState extends State<CliqueTab>
                   ),
                 ),
                 const SizedBox(height: 4),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 4,
-                  crossAxisAlignment: WrapCrossAlignment.center,
+                Row(
                   children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.schedule,
-                          color: Colors.white38,
-                          size: 14,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '7:00 PM',
-                          style: GoogleFonts.hankenGrotesk(
-                            color: Colors.white54,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+                    const Icon(Icons.schedule, color: Colors.white38, size: 13),
+                    const SizedBox(width: 4),
+                    Text(
+                      time,
+                      style: GoogleFonts.hankenGrotesk(
+                        color: Colors.white54,
+                        fontSize: 11.5,
+                      ),
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.directions_walk_rounded,
-                          color: Colors.white38,
-                          size: 14,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '10k Steps Target',
-                          style: GoogleFonts.hankenGrotesk(
-                            color: Colors.white54,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+                    const SizedBox(width: 8),
+                    Text(
+                      '• $displayPCount joined',
+                      style: GoogleFonts.hankenGrotesk(
+                        color: isJoined ? Colors.greenAccent : Colors.white38,
+                        fontSize: 11.5,
+                        fontWeight: isJoined ? FontWeight.bold : FontWeight.normal,
+                      ),
                     ),
                   ],
                 ),
@@ -662,19 +732,19 @@ class _CliqueTabState extends State<CliqueTab>
             ),
           ),
 
-          // View Lobby CTA
+          // View Lobby / Join CTA
           GestureDetector(
             onTap: () {
               HapticFeedback.lightImpact();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: _accent,
-                  content: Text(
-                    'Opening Evening Walk lobby...',
-                    style: GoogleFonts.hankenGrotesk(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CliqueLiveActivityScreen(
+                    isUpcoming: true,
+                    scheduledTime: '$dateMonth $dateDay, $time',
+                    activityName: title,
+                    activityType: actType,
+                    activityIcon: icon,
                   ),
                 ),
               );
@@ -682,14 +752,17 @@ class _CliqueTabState extends State<CliqueTab>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF2A2A2D),
+                color: isJoined ? _accent.withValues(alpha: 0.2) : const Color(0xFF2A2A2D),
                 borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isJoined ? _accent : Colors.transparent,
+                ),
               ),
               child: Text(
-                'View Lobby',
+                isJoined ? 'LOBBY ✓' : 'LOBBY',
                 style: GoogleFonts.hankenGrotesk(
-                  color: Colors.white,
-                  fontSize: 11,
+                  color: isJoined ? _accent : Colors.white,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
               ),

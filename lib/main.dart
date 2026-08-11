@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
-import 'screens/welcome_screen.dart';
+import 'screens/home_screen.dart';
 
 void main() {
   runApp(const FitrybeApp());
@@ -15,7 +15,7 @@ class FitrybeApp extends StatelessWidget {
       title: 'fitrybe',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: const WelcomeScreen(),
+      home: const HomeScreen(),
     );
   }
 }

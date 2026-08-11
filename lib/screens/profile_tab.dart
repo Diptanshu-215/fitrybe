@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'edit_profile_screen.dart';
 import '../models/post_store.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -22,7 +23,9 @@ class _ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateM
   final String _avatarUrl =
       'https://lh3.googleusercontent.com/aida-public/AB6AXuAHT0fSiT-tBM9-LHbHVlF65CZIgyCqn-DoDUSl05Y0gcWZ5GDqFvUrdutx26mNY5DtnE0ZpijRovfDxUuDLTu5hStbuDoEqMg95eZOlGU7rLLNjJ0EvPXvLs18QfqyMuOb-lgEkqg4Ybw2FlQVeIXwhwd8mUkP3SpCWEUMQnuUuHL2ac9TI_c2sG5wyicbvZ1rz7TuvQ74aVOFymH_WjY3EuexlU6cz0GhX0Kb_z1JbXHSiQhULIuH';
 
-
+  // Post Likes state
+  final Set<String> _likedProfilePostIds = {};
+  final Map<String, int> _profilePostLikesCount = {};
 
   late AnimationController _streakController;
 
@@ -777,20 +780,21 @@ class _ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildPostAction(IconData icon, String label, VoidCallback onTap) {
+  Widget _buildPostAction(IconData icon, String label, VoidCallback onTap, {Color? color}) {
     return GestureDetector(
       onTap: onTap,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: Colors.white38, size: 15),
+          Icon(icon, color: color ?? Colors.white38, size: 16),
           if (label.isNotEmpty) ...[
-            const SizedBox(width: 4),
+            const SizedBox(width: 6),
             Text(
               label,
               style: GoogleFonts.hankenGrotesk(
-                color: Colors.white38,
-                fontSize: 12,
+                color: color ?? Colors.white38,
+                fontWeight: color != null ? FontWeight.bold : FontWeight.normal,
+                fontSize: 12.5,
               ),
             ),
           ],
@@ -939,59 +943,54 @@ class _ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateM
                 ),
               ),
               // Three-dot menu
-              GestureDetector(
-                onTap: () async {
+              PopupMenuButton<String>(
+                onSelected: (value) {
                   HapticFeedback.lightImpact();
-                  final result = await showMenu<String>(
-                    context: context,
-                    position: RelativeRect.fromLTRB(
-                      MediaQuery.of(context).size.width - 60,
-                      MediaQuery.of(context).padding.top + 200,
-                      16,
-                      0,
-                    ),
-                    color: const Color(0xFF1F1F22),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    items: [
-                      PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            const Icon(Icons.edit_rounded,
-                                color: Colors.white54, size: 16),
-                            const SizedBox(width: 10),
-                            Text('Edit Post',
-                                style: GoogleFonts.hankenGrotesk(
-                                    color: Colors.white70, fontSize: 13)),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete_outline_rounded,
-                                color: _accent, size: 16),
-                            const SizedBox(width: 10),
-                            Text('Delete Post',
-                                style: GoogleFonts.hankenGrotesk(
-                                    color: _accent, fontSize: 13)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                  if (result == 'delete') {
+                  if (value == 'edit') {
+                    _showEditPostDialog(context, post);
+                  } else if (value == 'delete') {
                     PostStore.instance.removePost(post.id);
                   }
                 },
-                child: Icon(
+                color: const Color(0xFF1E1E22),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                icon: const Icon(
                   Icons.more_vert_rounded,
                   color: Colors.white30,
                   size: 18,
                 ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.edit_rounded, color: Colors.white54, size: 16),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Edit Post',
+                          style: GoogleFonts.hankenGrotesk(color: Colors.white70, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline_rounded, color: _accent, size: 16),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Delete Post',
+                          style: GoogleFonts.hankenGrotesk(color: _accent, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -1023,9 +1022,29 @@ class _ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateM
             children: [
               Row(
                 children: [
-                  _buildPostAction(Icons.thumb_up_rounded, '0 Likes', () {
-                    HapticFeedback.lightImpact();
-                  }),
+                  Builder(
+                    builder: (context) {
+                      final isLiked = _likedProfilePostIds.contains(post.id);
+                      final count = _profilePostLikesCount[post.id] ?? 0;
+                      return _buildPostAction(
+                        isLiked ? Icons.favorite_rounded : Icons.favorite_outline_rounded,
+                        '$count Likes',
+                        () {
+                          HapticFeedback.lightImpact();
+                          setState(() {
+                            if (isLiked) {
+                              _likedProfilePostIds.remove(post.id);
+                              _profilePostLikesCount[post.id] = (count - 1).clamp(0, 9999);
+                            } else {
+                              _likedProfilePostIds.add(post.id);
+                              _profilePostLikesCount[post.id] = count + 1;
+                            }
+                          });
+                        },
+                        color: isLiked ? _accent : Colors.white60,
+                      );
+                    },
+                  ),
                   const SizedBox(width: 24),
                   _buildPostAction(Icons.chat_bubble_outline_rounded, '0', () {
                     HapticFeedback.lightImpact();
@@ -1063,12 +1082,74 @@ class _ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateM
                 constraints: const BoxConstraints(),
                 onPressed: () {
                   HapticFeedback.lightImpact();
+                  SharePlus.instance.share(ShareParams(text: "Check out my post on FiTrybe! 💪\n\n${post.caption}"));
                 },
               ),
             ],
           ),
         ],
       ),
+    );
+  }
+
+  void _showEditPostDialog(BuildContext context, UserPost post) {
+    final controller = TextEditingController(text: post.caption);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1E1E22),
+          title: Text(
+            'Edit Post',
+            style: GoogleFonts.hankenGrotesk(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          content: TextField(
+            controller: controller,
+            maxLines: 4,
+            style: GoogleFonts.hankenGrotesk(color: Colors.white, fontSize: 14),
+            decoration: InputDecoration(
+              hintText: 'Edit your post...',
+              hintStyle: GoogleFonts.hankenGrotesk(color: Colors.white38),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: _accent),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel', style: GoogleFonts.hankenGrotesk(color: Colors.white54)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final newCaption = controller.text.trim();
+                if (newCaption.isNotEmpty) {
+                  PostStore.instance.removePost(post.id);
+                  PostStore.instance.addPost(
+                    UserPost(
+                      id: post.id,
+                      caption: newCaption,
+                      type: post.type,
+                      audience: post.audience,
+                      locationTag: post.locationTag,
+                      imagePaths: post.imagePaths,
+                      createdAt: post.createdAt,
+                    ),
+                  );
+                }
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: _accent),
+              child: Text('Save', style: GoogleFonts.hankenGrotesk(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
     );
   }
 

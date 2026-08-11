@@ -45,7 +45,6 @@ class NotificationsTab extends StatefulWidget {
 
 class _NotificationsTabState extends State<NotificationsTab> {
   final Color _accent = const Color(0xFFFF5722);
-  final Color _cardBg = const Color(0xFF1F1F22);
 
   static const String _marcusUrl =
       'https://lh3.googleusercontent.com/aida-public/AB6AXuBgjRSNIhjmFhRP_8S3tuvi1UgLC68VGmAkh42cOH9VQliTiy7tCc6SthMMHXDQA4u5KVBjJbgUpMGDWngdIa0napfGh8KuaI2R7Vg5APFj_FuEPtSycFIZ0S48-A0mTSDF9pEM1B68-1eG3zJonxwSmwvmtIGw9-09xvJbXE20Bc3pv4KvyqQJNn1emw8tMbAY9KUjxJD_Lmjaw4Duenm3KPou27843mgzy-OF2cdC5p_ej4RvuGJAVUmHusIFbL2nb5sunZYAAqE';
@@ -294,7 +293,7 @@ class _NotificationsTabState extends State<NotificationsTab> {
   ({IconData icon, Color color}) _iconFor(_NotifType type) {
     switch (type) {
       case _NotifType.kudos:
-        return (icon: Icons.thumb_up_rounded, color: const Color(0xFFFF5722));
+        return (icon: Icons.favorite_rounded, color: const Color(0xFFFF5722));
       case _NotifType.comment:
         return (icon: Icons.chat_bubble_rounded, color: const Color(0xFF448AFF));
       case _NotifType.followRequest:
@@ -358,80 +357,78 @@ class _NotificationsTabState extends State<NotificationsTab> {
 
   Widget _buildNotificationCard(_NotificationItem item) {
     final bool unread = !item.isRead;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: GestureDetector(
-        onTap: () => _markRead(item),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: unread ? _cardBg.withValues(alpha: 0.65) : _cardBg.withValues(alpha: 0.25),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: unread ? _accent.withValues(alpha: 0.18) : Colors.white.withValues(alpha: 0.03),
+    return GestureDetector(
+      onTap: () => _markRead(item),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: Colors.white.withValues(alpha: 0.08),
+              width: 1,
             ),
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildLeading(item),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.title,
-                            style: GoogleFonts.hankenGrotesk(
-                              color: unread ? Colors.white : Colors.white70,
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w700,
-                            ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildLeading(item),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.title,
+                          style: GoogleFonts.hankenGrotesk(
+                            color: unread ? Colors.white : Colors.white70,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        if (unread) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            width: 8,
-                            height: 8,
-                            margin: const EdgeInsets.only(top: 4),
-                            decoration: BoxDecoration(
-                              color: _accent,
-                              shape: BoxShape.circle,
-                            ),
+                      ),
+                      if (unread) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 8,
+                          height: 8,
+                          margin: const EdgeInsets.only(top: 4),
+                          decoration: BoxDecoration(
+                            color: _accent,
+                            shape: BoxShape.circle,
                           ),
-                        ],
+                        ),
                       ],
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      item.subtitle,
-                      style: GoogleFonts.hankenGrotesk(
-                        color: Colors.white54,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      item.time,
-                      style: GoogleFonts.hankenGrotesk(
-                        color: Colors.white24,
-                        fontSize: 10.5,
-                      ),
-                    ),
-                    if (item.actionable) ...[
-                      const SizedBox(height: 12),
-                      _buildActionRow(item),
                     ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.subtitle,
+                    style: GoogleFonts.hankenGrotesk(
+                      color: Colors.white54,
+                      fontSize: 12.5,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    item.time,
+                    style: GoogleFonts.hankenGrotesk(
+                      color: Colors.white24,
+                      fontSize: 10.5,
+                    ),
+                  ),
+                  if (item.actionable) ...[
+                    const SizedBox(height: 12),
+                    _buildActionRow(item),
                   ],
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -31,6 +31,8 @@ class _CustomizeGoalScreenState extends State<CustomizeGoalScreen> {
   // Target value states (mapped by Metric index)
   late List<int> _metricTargets;
 
+  late TextEditingController _targetTextCtrl;
+
   @override
   void initState() {
     super.initState();
@@ -44,6 +46,13 @@ class _CustomizeGoalScreenState extends State<CustomizeGoalScreen> {
     ];
     // Default values for [Distance, Duration, Calories, Sessions]
     _metricTargets = [50, 45, 500, 4];
+    _targetTextCtrl = TextEditingController(text: '${_metricTargets[_selectedMetricIndex]}');
+  }
+
+  @override
+  void dispose() {
+    _targetTextCtrl.dispose();
+    super.dispose();
   }
 
   // Get metric unit label
@@ -97,6 +106,7 @@ class _CustomizeGoalScreenState extends State<CustomizeGoalScreen> {
     HapticFeedback.selectionClick();
     setState(() {
       _metricTargets[_selectedMetricIndex] += _getIncrementStep();
+      _targetTextCtrl.text = '${_metricTargets[_selectedMetricIndex]}';
     });
   }
 
@@ -106,6 +116,7 @@ class _CustomizeGoalScreenState extends State<CustomizeGoalScreen> {
       HapticFeedback.selectionClick();
       setState(() {
         _metricTargets[_selectedMetricIndex] -= _getIncrementStep();
+        _targetTextCtrl.text = '${_metricTargets[_selectedMetricIndex]}';
       });
     }
   }
@@ -276,6 +287,7 @@ class _CustomizeGoalScreenState extends State<CustomizeGoalScreen> {
                         HapticFeedback.selectionClick();
                         setState(() {
                           _selectedMetricIndex = index;
+                          _targetTextCtrl.text = '${_metricTargets[_selectedMetricIndex]}';
                         });
                       },
                       child: Container(
@@ -327,16 +339,34 @@ class _CustomizeGoalScreenState extends State<CustomizeGoalScreen> {
                     ),
                   ),
                   const SizedBox(width: 32),
-                  // Display Number
+                  // Display Number (Inline Editable TextField)
                   Column(
                     children: [
-                      Text(
-                        '$currentTarget',
-                        style: GoogleFonts.anybody(
-                          color: Colors.white,
-                          fontSize: 68,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -2,
+                      IntrinsicWidth(
+                        child: TextField(
+                          controller: _targetTextCtrl,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.hankenGrotesk(
+                            color: Colors.white,
+                            fontSize: 68,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -1,
+                          ),
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          onChanged: (val) {
+                            final parsed = int.tryParse(val.trim());
+                            if (parsed != null && parsed > 0) {
+                              setState(() {
+                                _metricTargets[_selectedMetricIndex] = parsed;
+                              });
+                            }
+                          },
                         ),
                       ),
                       Text(
@@ -383,7 +413,7 @@ class _CustomizeGoalScreenState extends State<CustomizeGoalScreen> {
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 color: const Color(0xFF1B1B1E),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(24),
               ),
               child: Row(
                 children: List.generate(_frequencies.length, (index) {
@@ -398,17 +428,17 @@ class _CustomizeGoalScreenState extends State<CustomizeGoalScreen> {
                         });
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
                           color: isActive ? _accent : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(20),
                         ),
                         child: Center(
                           child: Text(
                             freq,
                             style: GoogleFonts.hankenGrotesk(
                               color: isActive ? Colors.white : Colors.white38,
-                              fontSize: 12.5,
+                              fontSize: 12,
                               fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
                             ),
                           ),
@@ -562,42 +592,42 @@ class _CustomizeGoalScreenState extends State<CustomizeGoalScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-        color: _bg.withValues(alpha: 0.95),
-        child: SizedBox(
-          height: 52,
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: _accent,
-                  content: Text(
-                    '${selectedActivity['name']} Goal Saved!',
-                    style: GoogleFonts.hankenGrotesk(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+          color: _bg.withValues(alpha: 0.95),
+          child: SizedBox(
+            height: 56,
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: _accent,
+                    content: Text(
+                      '${selectedActivity['name']} Goal Saved!',
+                      style: GoogleFonts.hankenGrotesk(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
-              );
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _accent,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                );
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _accent,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: const StadiumBorder(),
               ),
-              elevation: 4,
-            ),
-            child: Text(
-              'Save Goal',
-              style: GoogleFonts.hankenGrotesk(
-                fontSize: 14.5,
-                fontWeight: FontWeight.bold,
+              child: Text(
+                'Save Goal',
+                style: GoogleFonts.hankenGrotesk(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),

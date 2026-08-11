@@ -1,11 +1,12 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:fitrybe/main.dart';
+import 'package:fitrybe/screens/welcome_screen.dart';
 
 void main() {
   testWidgets('Welcome screen elements smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const FitrybeApp());
+    await tester.pumpWidget(const MaterialApp(home: WelcomeScreen()));
 
     // Verify that the brand SVG logo mark and wordmark are shown.
     expect(find.byType(SvgPicture), findsNWidgets(2));
