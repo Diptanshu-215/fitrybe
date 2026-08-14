@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'screens/home_screen.dart';
+import 'services/api_client.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await ApiClient().init();
   runApp(const FitrybeApp());
 }
 

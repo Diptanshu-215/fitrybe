@@ -147,7 +147,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Password reset link sent to your email.'),
+                              ),
+                            );
+                          },
                           child: Text(
                             'Forgot Password?',
                             style: GoogleFonts.hankenGrotesk(
@@ -205,7 +211,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       // Google Button (Wide Center Outlined Stadium Button)
                       OutlinedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const UserDetailsScreen()),
+                          );
+                        },
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Color(0xFF2E2E32), width: 1.5),
                           padding: const EdgeInsets.symmetric(vertical: 16),

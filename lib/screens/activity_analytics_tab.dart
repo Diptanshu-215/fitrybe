@@ -1,6 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'subscription_screen.dart';
+import 'customize_goal_screen.dart';
 
 class ActivityAnalyticsTab extends StatefulWidget {
   const ActivityAnalyticsTab({super.key});
@@ -467,13 +470,35 @@ class _ActivityAnalyticsTabState extends State<ActivityAnalyticsTab> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Personal Goals',
-          style: GoogleFonts.hankenGrotesk(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Personal Goals',
+              style: GoogleFonts.hankenGrotesk(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CustomizeGoalScreen()),
+                );
+              },
+              child: Text(
+                'Customize',
+                style: GoogleFonts.hankenGrotesk(
+                  color: _accent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         SizedBox(
@@ -496,9 +521,17 @@ class _ActivityAnalyticsTabState extends State<ActivityAnalyticsTab> {
 
   Widget _buildGoalCard(IconData icon, String title, String progressText, double progress) {
     final bool isCompleted = progress >= 1.0;
-    return Container(
-      width: 200,
-      padding: const EdgeInsets.all(14),
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CustomizeGoalScreen()),
+        );
+      },
+      child: Container(
+        width: 200,
+        padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: _cardBg.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(20),
@@ -545,6 +578,7 @@ class _ActivityAnalyticsTabState extends State<ActivityAnalyticsTab> {
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -1243,7 +1277,13 @@ class _ActivityAnalyticsTabState extends State<ActivityAnalyticsTab> {
                     SizedBox(
                       height: 40,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          HapticFeedback.lightImpact();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const SubscriptionScreen()),
+                          );
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _accent,
                           foregroundColor: Colors.white,

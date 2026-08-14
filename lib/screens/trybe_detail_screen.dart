@@ -6,6 +6,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:share_plus/share_plus.dart';
 import 'chat_detail_screen.dart';
 import 'create_post_screen.dart';
+import '../services/trybe_service.dart';
 
 class TrybeDetailScreen extends StatefulWidget {
   final String title;
@@ -65,6 +66,12 @@ class _TrybeDetailScreenState extends State<TrybeDetailScreen>
 
   void _toggleJoin() {
     HapticFeedback.heavyImpact();
+    final trybeId = widget.title.replaceAll(' ', '_');
+    if (!_isJoined) {
+      TrybeService().joinTrybe(trybeId);
+    } else {
+      TrybeService().leaveTrybe(trybeId);
+    }
     setState(() {
       _isJoined = !_isJoined;
     });

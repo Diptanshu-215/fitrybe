@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'edit_profile_screen.dart';
+import 'achievements_screen.dart';
 import '../models/post_store.dart';
+import '../models/achievement_model.dart';
+import '../widgets/achievement_badge_widget.dart';
 import 'package:share_plus/share_plus.dart';
 
 class ProfileTab extends StatefulWidget {
@@ -540,15 +543,10 @@ class _ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateM
   }
 
   Widget _buildAchievementsSection() {
-    final List<IconData> badgeIcons = [
-      Icons.military_tech_rounded,
-      Icons.workspace_premium_rounded,
-      Icons.emoji_events_rounded,
-      Icons.stars_rounded,
-      Icons.workspace_premium,
-    ];
+    final showcaseBadges = AchievementData.badges.where((b) => b.unlocked).take(8).toList();
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -562,9 +560,15 @@ class _ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateM
               ),
             ),
             GestureDetector(
-              onTap: () {},
+              onTap: () {
+                HapticFeedback.lightImpact();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AchievementsScreen()),
+                );
+              },
               child: Text(
-                'View All',
+                'View All (${AchievementData.badges.where((b) => b.unlocked).length}/${AchievementData.badges.length})',
                 style: GoogleFonts.hankenGrotesk(
                   color: _accent,
                   fontSize: 11.5,
@@ -576,30 +580,27 @@ class _ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateM
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 80,
+          height: 154,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
-            itemCount: badgeIcons.length,
+            itemCount: showcaseBadges.length,
             itemBuilder: (context, index) {
-              final icon = badgeIcons[index];
-              final isFirst = index == 0;
-              return Container(
-                width: 80,
-                margin: const EdgeInsets.only(right: 12),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isFirst ? _accent.withValues(alpha: 0.1) : _cardBg.withValues(alpha: 0.4),
-                  border: Border.all(
-                    color: isFirst ? _accent.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.04),
-                    width: 1.5,
-                  ),
-                ),
-                alignment: Alignment.center,
-                child: Icon(
-                  icon,
-                  color: isFirst ? _accent : Colors.white38,
-                  size: 32,
+              final badge = showcaseBadges[index];
+              return Padding(
+                padding: const EdgeInsets.only(right: 14),
+                child: AchievementBadgeWidget(
+                  badge: badge,
+                  size: 72,
+                  showLabel: true,
+                  showStatusText: false,
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AchievementsScreen()),
+                    );
+                  },
                 ),
               );
             },

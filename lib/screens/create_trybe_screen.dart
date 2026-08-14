@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import '../services/trybe_service.dart';
 
 class CreateTrybeScreen extends StatefulWidget {
   static const routeName = '/CreateTrybeScreen';
@@ -149,6 +150,16 @@ class _CreateTrybeScreenState extends State<CreateTrybeScreen> {
     }
 
     HapticFeedback.mediumImpact();
+
+    // Call Backend API
+    TrybeService().createTrybe(
+      name: name,
+      description: _descController.text.trim().isNotEmpty ? _descController.text.trim() : null,
+      category: _selectedActivities.isNotEmpty ? _selectedActivities.first : 'Running',
+      isPublic: _trybeType == 'Public',
+      imageFile: _trybeImageFile,
+    );
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: _accent,

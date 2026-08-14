@@ -17,6 +17,8 @@ import 'customize_goal_screen.dart';
 import 'subscription_screen.dart';
 import 'messaging_screen.dart';
 import '../models/post_store.dart';
+import '../services/socket_service.dart';
+import '../services/post_service.dart';
 import 'package:share_plus/share_plus.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -99,6 +101,22 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    SocketService().connect();
+    _loadBackendFeed();
+  }
+
+  Future<void> _loadBackendFeed() async {
+    try {
+      final posts = await PostService().fetchFeed();
+      if (posts.isNotEmpty && mounted) {
+        setState(() {});
+      }
+    } catch (_) {}
+  }
 
   @override
   void dispose() {

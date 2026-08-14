@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import '../models/post_store.dart';
+import '../services/post_service.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
@@ -218,6 +219,16 @@ class _CreatePostScreenState extends State<CreatePostScreen>
         imagePaths: _selectedImages.map((x) => x.path).toList(),
         createdAt: DateTime.now(),
       ),
+    );
+
+    // Also send to Backend API
+    final imageFiles = _selectedImages.map((x) => File(x.path)).toList();
+    PostService().createPost(
+      caption: caption,
+      type: _selectedPostType,
+      audience: _selectedAudience == 'Everyone' ? 'EVERYONE' : 'TRYBES',
+      locationTag: _locationTag,
+      imageFiles: imageFiles.isNotEmpty ? imageFiles : null,
     );
 
     ScaffoldMessenger.of(context).showSnackBar(
